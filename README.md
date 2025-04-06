@@ -6,6 +6,7 @@ An MCP server for accessing the Swiss Food Composition Database API from Claude 
 
 - **Multi-language Support**: Access food information in English, German, French, and Italian
 - **Food Search**: Search for foods by name, category, or nutritional criteria
+- **Recipe Search**: Find recipes in the database by name or ingredients
 - **Nutritional Information**: Get detailed nutritional values for any food in the database
 - **Food Comparison**: Compare nutritional values between different foods
 - **Recipe Analysis**: Calculate nutritional totals for recipes based on ingredients
@@ -25,6 +26,12 @@ Here are some examples of how to use the Swiss Nutrition Database MCP server wit
 
 This will use the `search_foods` tool to find foods matching "apple" in the database.
 
+### Searching for Recipes
+
+"Find bread recipes in the Swiss Nutrition Database"
+
+This will use the `search_recipes` tool to search specifically for recipes containing the term "bread".
+
 ### Getting Food Details
 
 "What's the nutritional information for chocolate in the Swiss database?"
@@ -41,7 +48,13 @@ This will use the `compare_nutritional_values` tool to show a side-by-side compa
 
 "Calculate the nutritional content of a recipe with 100g of chicken, 50g of rice, and 30g of butter"
 
-This will use the `calculate_recipe_nutrition` tool to determine the combined nutritional values.
+This will use the `calculate_recipe_nutrition` tool to determine the combined nutritional values for a custom recipe.
+
+### Recipe Nutrition Lookup
+
+"Get the nutritional information for lasagna recipe ID 12345"
+
+This will use the `get_recipe_nutrition` tool to retrieve the complete nutritional breakdown for an existing recipe in the database.
 
 ### Changing Language
 
@@ -52,11 +65,13 @@ This will use the `set_language_preference` tool to change the language of respo
 ## Available Tools
 
 - `search_foods`: Search for foods in the database
+- `search_recipes`: Search specifically for recipes in the database
 - `get_food_details`: Get detailed information about a specific food
 - `get_nutritional_values`: Get nutritional values for a specific food
 - `compare_nutritional_values`: Compare nutritional values between multiple foods
 - `get_ingredients`: Get ingredients for a specific recipe
 - `calculate_recipe_nutrition`: Calculate nutritional totals for a custom recipe
+- `get_recipe_nutrition`: Get complete nutritional information for an existing recipe by ID
 - `set_language_preference`: Set the preferred language for results
 - `detect_language`: Detect language from text input
 

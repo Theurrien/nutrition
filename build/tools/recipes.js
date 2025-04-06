@@ -145,4 +145,85 @@ export async function calculateRecipeNutrition(params) {
         throw error;
     }
 }
+/**
+ * Search for recipes in the database
+ * @param params Parameters for searching recipes
+ * @returns Array of recipe objects with their details
+ */
+export async function searchRecipes(params) {
+    const { query, language = DEFAULT_LANGUAGE, limit = 20 } = params;
+    try {
+        // First, search for foods with the given query
+        const searchParams = {
+            search: query,
+            lang: language,
+            limit
+        };
+        const searchResults = await apiClient.searchFoods(searchParams);
+        if (!searchResults || searchResults.length === 0) {
+            return [];
+        }
+        // Fetch full details for each result and filter for recipes
+        const detailedResults = await Promise.all(searchResults.map(async (result) => {
+            try {
+                return await apiClient.getFoodByDBID(result.id, language);
+            }
+            catch (error) {
+                console.error(`Error fetching details for food ID ${result.id}:`, error);
+                return null;
+            }
+        }));
+        // Filter out null results and non-recipes
+        const recipes = detailedResults
+            .filter((food) => food !== null && food.isrecipe === true);
+        return recipes;
+    }
+    catch (error) {
+        if (error instanceof McpError) {
+            throw error;
+        }
+        if (error instanceof Error) {
+            throw new McpError(ErrorCode.InternalError, `${translate('error.api', language)}: ${error.message}`);
+        }
+        throw error;
+    }
+}
+/**
+ * Get nutritional information for a specific recipe
+ * @param params Parameters for retrieving recipe nutrition
+ * @returns Nutritional breakdown of the recipe
+ */
+export async function getRecipeNutrition(params) {
+    const { recipeId, language = DEFAULT_LANGUAGE } = params;
+    try {
+        // First, get the recipe details to verify it's a recipe
+        const recipe = await apiClient.getFoodByDBID(recipeId, language);
+        if (!recipe.isrecipe) {
+            throw new McpError(ErrorCode.InvalidRequest, `Food ID ${recipeId} is not a recipe`);
+        }
+        // Get the recipe ingredients
+        const ingredients = await getIngredients({ recipeId, language });
+        // Convert the ingredients to the format expected by calculateRecipeNutrition
+        const ingredientParams = ingredients.map(ingredient => ({
+            foodId: ingredient.foodid.id,
+            amount: ingredient.amount,
+            unit: ingredient.unit
+        }));
+        // Calculate the nutritional values
+        const nutritionResult = await calculateRecipeNutrition({
+            ingredients: ingredientParams,
+            language
+        });
+        return nutritionResult;
+    }
+    catch (error) {
+        if (error instanceof McpError) {
+            throw error;
+        }
+        if (error instanceof Error) {
+            throw new McpError(ErrorCode.InternalError, `${translate('error.api', language)}: ${error.message}`);
+        }
+        throw error;
+    }
+}
 //# sourceMappingURL=recipes.js.map

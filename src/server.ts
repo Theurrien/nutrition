@@ -17,7 +17,9 @@ import {
   getFoodDetails,
   getNutritionalValues,
   getIngredients,
+  getRecipeNutrition,
   searchFoods,
+  searchRecipes,
 } from './tools/index.js';
 import { translate } from './utils/i18n.js';
 import { DEFAULT_LANGUAGE, detectLanguage, getUserLanguagePreference, setUserLanguagePreference } from './utils/language.js';
@@ -185,31 +187,76 @@ export class NutritionMcpServer {
                 items: {
                   type: 'object',
                   properties: {
-                    foodId: { 
-                      type: 'number', 
-                      description: 'Database ID of the ingredient' 
+                    foodId: {
+                      type: 'number',
+                      description: 'Database ID of the ingredient'
                     },
-                    amount: { 
-                      type: 'number', 
-                      description: 'Amount of the ingredient' 
+                    amount: {
+                      type: 'number',
+                      description: 'Amount of the ingredient'
                     },
-                    unit: { 
-                      type: 'string', 
-                      description: 'Unit of measurement' 
+                    unit: {
+                      type: 'string',
+                      description: 'Unit of measurement'
                     }
                   },
                   required: ['foodId', 'amount', 'unit']
                 },
                 description: 'List of ingredients with amounts'
               },
-              language: { 
-                type: 'string', 
-                enum: ['en', 'de', 'fr', 'it'], 
+              language: {
+                type: 'string',
+                enum: ['en', 'de', 'fr', 'it'],
                 default: 'en',
                 description: 'Language for results'
               }
             },
             required: ['ingredients']
+          }
+        },
+        {
+          name: 'search_recipes',
+          description: 'Search for recipes in the Swiss Food Composition Database',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                description: 'Search term for finding recipes'
+              },
+              language: {
+                type: 'string',
+                enum: ['en', 'de', 'fr', 'it'],
+                default: 'en',
+                description: 'Language for results'
+              },
+              limit: {
+                type: 'number',
+                description: 'Maximum number of results',
+                default: 20
+              }
+            },
+            required: ['query']
+          }
+        },
+        {
+          name: 'get_recipe_nutrition',
+          description: 'Get complete nutritional information for a specific recipe',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              recipeId: {
+                type: 'number',
+                description: 'Database ID of the recipe'
+              },
+              language: {
+                type: 'string',
+                enum: ['en', 'de', 'fr', 'it'],
+                default: 'en',
+                description: 'Language for results'
+              }
+            },
+            required: ['recipeId']
           }
         },
         {
@@ -361,6 +408,30 @@ export class NutritionMcpServer {
                 {
                   type: 'text',
                   text: JSON.stringify({ detectedLanguage }, null, 2),
+                },
+              ],
+            };
+          }
+
+          case 'search_recipes': {
+            const result = await searchRecipes(request.params.arguments as any);
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(result, null, 2),
+                },
+              ],
+            };
+          }
+
+          case 'get_recipe_nutrition': {
+            const result = await getRecipeNutrition(request.params.arguments as any);
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(result, null, 2),
                 },
               ],
             };

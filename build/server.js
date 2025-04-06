@@ -2,7 +2,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ErrorCode, ListResourcesRequestSchema, ListResourceTemplatesRequestSchema, ListToolsRequestSchema, McpError, ReadResourceRequestSchema, } from '@modelcontextprotocol/sdk/types.js';
 import { foodResourceTemplates, handleFoodResource } from './resources/food.js';
 import { handleRecipeResource, recipeResourceTemplates } from './resources/recipe.js';
-import { compareNutritionalValues, calculateRecipeNutrition, getFoodDetails, getNutritionalValues, getIngredients, searchFoods, } from './tools/index.js';
+import { compareNutritionalValues, calculateRecipeNutrition, getFoodDetails, getNutritionalValues, getIngredients, getRecipeNutrition, searchFoods, searchRecipes, } from './tools/index.js';
 import { translate } from './utils/i18n.js';
 import { DEFAULT_LANGUAGE, detectLanguage, setUserLanguagePreference } from './utils/language.js';
 /**
@@ -188,6 +188,51 @@ export class NutritionMcpServer {
                     }
                 },
                 {
+                    name: 'search_recipes',
+                    description: 'Search for recipes in the Swiss Food Composition Database',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            query: {
+                                type: 'string',
+                                description: 'Search term for finding recipes'
+                            },
+                            language: {
+                                type: 'string',
+                                enum: ['en', 'de', 'fr', 'it'],
+                                default: 'en',
+                                description: 'Language for results'
+                            },
+                            limit: {
+                                type: 'number',
+                                description: 'Maximum number of results',
+                                default: 20
+                            }
+                        },
+                        required: ['query']
+                    }
+                },
+                {
+                    name: 'get_recipe_nutrition',
+                    description: 'Get complete nutritional information for a specific recipe',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            recipeId: {
+                                type: 'number',
+                                description: 'Database ID of the recipe'
+                            },
+                            language: {
+                                type: 'string',
+                                enum: ['en', 'de', 'fr', 'it'],
+                                default: 'en',
+                                description: 'Language for results'
+                            }
+                        },
+                        required: ['recipeId']
+                    }
+                },
+                {
                     name: 'set_language_preference',
                     description: 'Set the preferred language for results',
                     inputSchema: {
@@ -318,6 +363,28 @@ export class NutritionMcpServer {
                                 {
                                     type: 'text',
                                     text: JSON.stringify({ detectedLanguage }, null, 2),
+                                },
+                            ],
+                        };
+                    }
+                    case 'search_recipes': {
+                        const result = await searchRecipes(request.params.arguments);
+                        return {
+                            content: [
+                                {
+                                    type: 'text',
+                                    text: JSON.stringify(result, null, 2),
+                                },
+                            ],
+                        };
+                    }
+                    case 'get_recipe_nutrition': {
+                        const result = await getRecipeNutrition(request.params.arguments);
+                        return {
+                            content: [
+                                {
+                                    type: 'text',
+                                    text: JSON.stringify(result, null, 2),
                                 },
                             ],
                         };
